@@ -97,7 +97,7 @@ def send_http_request():
 
 def send_signal():
     GPIO.output(OUTPUT_PIN, GPIO.HIGH)
-    time.sleep(1)
+    time.sleep(0.1)
     GPIO.output(OUTPUT_PIN, GPIO.LOW)
 
 
