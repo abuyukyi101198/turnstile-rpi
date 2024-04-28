@@ -125,29 +125,34 @@ def listen_to_input(input_source):
                     else:
                         input_string += key_string
     except FileNotFoundError:
-        print(f"Input source {input_source} not found.")
+        raise FileNotFoundError(f"Input source {input_source} not found.")
     except PermissionError:
-        print(f"Permission denied while accessing {input_source}. Make sure to run the script as root.")
+        raise PermissionError(f"Permission denied while accessing {input_source}. Make sure to run the script as root.")
 
 
 def main():
-    try:
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(OUTPUT_PIN, GPIO.OUT)
+    while True:
+        try:
+            GPIO.setmode(GPIO.BOARD)
+            GPIO.setup(OUTPUT_PIN, GPIO.OUT)
 
-        # Get the input source
-        input_source, error = get_input_source()
-        if error:
-            print("Error while detecting USB input source")
-            return
+            # Get the input source
+            input_source, error = get_input_source()
+            if error:
+                print("Error while detecting USB input source")
+                continue  # Retry the operation
 
-        listen_to_input(input_source)  # Change this to the detected input source
+            listen_to_input(input_source)  # Change this to the detected input source
 
-    except KeyboardInterrupt:
-        pass
-    finally:
-        print("exiting...")
-        GPIO.cleanup()
+        except KeyboardInterrupt:
+            break  # Exit the loop on keyboard interrupt
+        except Exception as e:
+            print(f"An exception occurred: {e}")
+            time.sleep(1)  # Wait for a second before retrying
+        finally:
+            GPIO.cleanup()
+
+    print("Exiting...")
 
 
 if __name__ == '__main__':
