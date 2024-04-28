@@ -56,7 +56,18 @@ shift_pressed = False
 OUTPUT_PIN = 16
 
 
-def get_input_source():
+def get_input_source() -> tuple[str, str]:
+    """
+        Executes a Bash script to find input sources and returns the detected source.
+
+        Returns:
+            tuple: A tuple containing the detected input source and any error message.
+
+        Raises:
+            FileNotFoundError: If the input source is not found.
+            PermissionError: If permission is denied while accessing the input source.
+                             This typically happens when the script is not run as root.
+    """
     # Execute the Bash script to find input sources
     process = subprocess.Popen(['bash', '-c', bash_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     output, error = process.communicate()
@@ -65,7 +76,16 @@ def get_input_source():
     return output, error
 
 
-def convert_key_event_to_string(key_event):
+def convert_key_event_to_string(key_event) -> str or None:
+    """
+        Converts a key event to its corresponding character or special key.
+
+        Args:
+            key_event: The key event object.
+
+        Returns:
+            str or None: The corresponding character or special key, or None if the key event should be ignored.
+    """
     global shift_pressed
     if key_event.code == ecodes.KEY_LEFTSHIFT or key_event.code == ecodes.KEY_RIGHTSHIFT:
         shift_pressed = (key_event.value == 1)
@@ -80,7 +100,13 @@ def convert_key_event_to_string(key_event):
         return None
 
 
-def send_http_request():
+def send_http_request() -> bool:
+    """
+        Sends an HTTP POST request to a predefined URL with specified headers and data.
+
+        Returns:
+            bool: True if the response text is 'true', False otherwise.
+    """
     url = 'https://worfact-api.infoart.com.tr/qrcode/scan'
     headers = {
         'Content-Type': 'application/json',
@@ -95,13 +121,27 @@ def send_http_request():
     return response.text.strip() == 'true'
 
 
-def send_signal():
+def send_signal() -> None:
+    """
+        Sends a signal to the turnstile by toggling the GPIO pin.
+    """
     GPIO.output(OUTPUT_PIN, GPIO.HIGH)
     time.sleep(0.1)
     GPIO.output(OUTPUT_PIN, GPIO.LOW)
 
 
-def listen_to_input(input_source):
+def listen_to_input(input_source: str) -> None:
+    """
+        Listens to input events from the specified input source.
+
+        Args:
+            input_source (str): The input source to listen to.
+
+        Raises:
+            FileNotFoundError: If the input source is not found.
+            PermissionError: If permission is denied while accessing the input source.
+                             This typically happens when the script is not run as root.
+    """
     try:
         # Open the input device using evdev
         device = InputDevice(input_source)
@@ -131,6 +171,9 @@ def listen_to_input(input_source):
 
 
 def main():
+    """
+        Main function that initializes GPIO, detects input source, and listens to input events.
+    """
     while True:
         try:
             GPIO.setmode(GPIO.BOARD)
